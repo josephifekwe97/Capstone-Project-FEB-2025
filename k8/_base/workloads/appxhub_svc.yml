@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: appxhub-svc
+spec:
+  selector:
+    app: appxhub
+  type: NodePort
+  ports:
+  - name: appxhub-port
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+    nodePort: 30001

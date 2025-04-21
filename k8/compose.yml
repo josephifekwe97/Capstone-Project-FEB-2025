@@ -1,0 +1,10 @@
+name: test-appxhub
+
+services:
+  appxhub:
+    image: appxhub:2.1
+    container_name: appxhub
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appxhub-image-config
+data:
+  IMAGE_NAME: "isrealade/appxhub"
+  IMAGE_TAG: "2.1"
