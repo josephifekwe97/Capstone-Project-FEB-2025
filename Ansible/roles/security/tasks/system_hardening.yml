@@ -1,0 +1,63 @@
+---
+- name: Install security packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - fail2ban
+    - ufw
+    - auditd
+
+- name: Configure fail2ban
+  template:
+    src: fail2ban.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart fail2ban
+
+- name: Enable and start fail2ban
+  service:
+    name: fail2ban
+    state: started
+    enabled: yes
+
+- name: Configure auditd
+  template:
+    src: auditd.j2
+    dest: /etc/audit/auditd.conf
+    owner: root
+    group: root
+    mode: '0640'
+  notify: restart auditd
+
+- name: Enable and start auditd
+  service:
+    name: auditd
+    state: started
+    enabled: yes
+
+- name: Set secure permissions on sensitive files
+  file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode }}"
+    owner: root
+    group: root
+  loop:
+    - { path: /etc/shadow, mode: '0000' }
+    - { path: /etc/gshadow, mode: '0000' }
+    - { path: /etc/passwd, mode: '0644' }
+    - { path: /etc/group, mode: '0644' }
+
+- name: Configure system limits
+  pam_limits:
+    domain: '*'
+    limit_type: "{{ item.type }}"
+    limit_item: "{{ item.item }}"
+    value: "{{ item.value }}"
+  loop:
+    - { type: 'hard', item: 'nofile', value: '65535' }
+    - { type: 'soft', item: 'nofile', value: '65535' }
+    - { type: 'hard', item: 'nproc', value: '65535' }
+    - { type: 'soft', item: 'nproc', value: '65535' } 
