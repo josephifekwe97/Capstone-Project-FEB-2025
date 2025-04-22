@@ -1,212 +1,159 @@
-# Kubernetes Cluster Configuration with Ansible
+# SSH Setup and Monitoring Tool
 
-This project provides Ansible automation for setting up and managing Kubernetes clusters across various environments, including cloud providers (AWS, GCP, Azure) and local machines.
+A comprehensive tool for setting up SSH access and monitoring across a cluster of nodes. This tool automates the process of configuring SSH keys, testing connectivity, and monitoring node health.
 
 ## Features
 
-- Automated Kubernetes cluster deployment
-- Support for both manual and automated SSH setup
-- Comprehensive security hardening
-- Flexible configuration options
-- Detailed logging and monitoring
-- Backup and restore capabilities
-- Health checks and validation
-- Parallel processing for faster setup
-- Cloud-agnostic design
-- Local machine support
+- **SSH Key Management**
+  - Import existing SSH keys or create new ones
+  - Automatic backup of SSH keys
+  - Secure key file permissions
 
-## Prerequisites
+- **Node Configuration**
+  - Support for control, master, and worker nodes
+  - Automated SSH setup for all nodes
+  - Individual node setup capability
+  - Connectivity testing between nodes
 
-### General Requirements
-- Control Node (can be local machine or cloud instance)
-- Target Nodes (can be cloud instances or local machines)
-- SSH access between nodes
-- Python 3.6 or later
-- Ansible 2.9 or later
-- Git
+- **Monitoring**
+  - Real-time system metrics (CPU, Memory, Disk, Uptime, Load)
+  - Interactive connectivity matrix
+  - Auto-refreshing status display
+  - Color-coded output for easy status identification
 
-### Cloud Provider Requirements
-If using cloud providers, ensure:
-- Appropriate account permissions
-- CLI tools configured (AWS CLI, gcloud, az)
-- Key pairs or authentication methods
-- Security groups/firewalls configured for:
-  - SSH access (port 22)
-  - Kubernetes API server (port 6443)
-  - etcd server client API (port 2379)
-  - etcd peer communication (port 2380)
-  - Kubelet API (port 10250)
-  - kube-scheduler (port 10259)
-  - kube-controller-manager (port 10257)
-  - NodePort Services (ports 30000-32767)
+- **Security**
+  - Secure key file handling
+  - Temporary file cleanup
+  - Proper file permissions
+  - Backup management
 
-### Hardware Requirements
-- Control Node:
-  - 2 CPU cores minimum
-  - 4GB RAM minimum
-  - 20GB storage minimum
-- Master Nodes:
-  - 2 CPU cores minimum
-  - 4GB RAM minimum
-  - 20GB storage minimum
-- Worker Nodes:
-  - 2 CPU cores minimum
-  - 4GB RAM minimum
-  - 20GB storage minimum
+## Requirements
 
-## Quick Start
+- **System Requirements**
+  - Bash shell
+  - SSH client
+  - `yq` (YAML processor) or grep/awk for YAML parsing
+  - `timeout` command
+  - `top`, `free`, `df`, `uptime` commands on target nodes
 
-### 1. Prepare Your Environment
+- **Network Requirements**
+  - SSH access to all nodes
+  - Network connectivity between all nodes
+  - Proper firewall rules to allow SSH traffic
 
-#### Cloud Setup
-- Launch instances for control and target nodes
-- Configure security groups/firewalls
-- Set up key pairs or authentication methods
+- **Permissions**
+  - Write access to `~/.ssh` directory
+  - SSH access to all target nodes
+  - Sudo privileges on target nodes (for some operations)
 
-#### Local Setup
-- Ensure machines meet hardware requirements
-- Configure network connectivity
-- Set up SSH access between machines
+## Installation
 
-### 2. Set Up SSH Access
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
 
-You have two options for setting up SSH access:
+2. Install required dependencies:
+   ```bash
+   # For Ubuntu/Debian
+   sudo apt-get update
+   sudo apt-get install -y yq ssh
 
-#### Option 1: Manual Setup
-```bash
-# Connect to control node
-ssh <user>@<control-node-ip>
+   # For CentOS/RHEL
+   sudo yum install -y yq openssh-clients
+   ```
 
-# Generate SSH key pair
-ssh-keygen -t rsa -b 4096
+3. Configure the `config.yml` file:
+   - Update node information (IPs, usernames)
+   - Ensure all required fields are filled
 
-# Copy public key to target nodes
-ssh-copy-id <user>@<target-node-ip>
-```
+4. Make the script executable:
+   ```bash
+   chmod +x scripts/setup_ssh.sh
+   ```
 
-#### Option 2: Automated Setup (Recommended)
-```bash
-# Copy and edit configuration
-cp scripts/config.yaml.example scripts/config.yaml
-nano scripts/config.yaml
+## Usage
 
-# Make script executable
-chmod +x scripts/setup_ssh.sh
+1. Run the script:
+   ```bash
+   ./scripts/setup_ssh.sh
+   ```
 
-# Run the script
-./scripts/setup_ssh.sh
-```
+2. Main Menu Options:
+   - Setup all nodes
+   - Setup specific node
+   - Show failed nodes
+   - View logs
+   - Show node status
+   - Monitor nodes
+   - Cleanup temporary files
+   - Exit
 
-The automated script provides:
-- Interactive menu interface
-- Parallel processing
-- Health checks
-- Backup and restore
-- Comprehensive logging
-
-### 3. Clone and Configure
-```bash
-git clone <repository-url>
-cd kubernetes-ansible
-
-# Configure inventory
-nano inventory/hosts
-
-# Configure variables
-nano inventory/group_vars/all.yml
-```
-
-### 4. Run Setup
-```bash
-# Make the script executable
-chmod +x scripts/run.sh
-
-# Run the setup
-./scripts/run.sh
-```
-
-## Project Structure
-
-```
-.
-├── ansible.cfg           # Ansible configuration
-├── inventory/           # Inventory files
-│   ├── hosts           # Main inventory file
-│   └── group_vars/     # Group variables
-├── roles/              # Ansible roles
-│   ├── common/         # Common system configuration
-│   ├── security/       # Security hardening
-│   ├── kubernetes/     # Kubernetes specific setup
-│   └── packages/       # Package management
-├── playbooks/          # Main playbooks
-│   ├── setup.yml       # Main setup playbook
-│   └── security.yml    # Security hardening playbook
-├── scripts/            # Helper scripts
-│   ├── setup_ssh.sh    # SSH setup automation
-│   ├── run.sh          # Main execution script
-│   └── config.yaml     # SSH setup configuration
-└── docs/               # Documentation
-    ├── setup_guide.md  # Detailed setup instructions
-    └── troubleshooting.md # Troubleshooting guide
-```
+3. Monitoring:
+   - Press 'q' to quit monitoring
+   - Auto-refreshes every 5 seconds
+   - Shows real-time metrics and connectivity status
 
 ## Configuration
 
-### Inventory Configuration
-Edit `inventory/hosts` to add your nodes:
-
-```ini
-[control_plane]
-master1 ansible_host=192.168.1.10
-master2 ansible_host=192.168.1.11
-master3 ansible_host=192.168.1.12
-
-[worker_nodes]
-worker1 ansible_host=192.168.1.20
-worker2 ansible_host=192.168.1.21
-```
-
-### Variables Configuration
-Edit `inventory/group_vars/all.yml` to customize settings:
+The `config.yml` file should contain:
 
 ```yaml
-# System settings
-timezone: UTC
-system_locale: en_US.UTF-8
-
-# Kubernetes settings
-kubernetes_version: "1.28.0"
-container_runtime: docker
-pod_cidr: "10.244.0.0/16"
-service_cidr: "10.96.0.0/12"
+nodes:
+  control:
+    name: "control"
+    ip: "your-control-ip"
+    user: "your-username"
+  masters:
+    - name: "master-1"
+      ip: "your-master-ip"
+      user: "your-username"
+    # Add more master nodes as needed
+  workers:
+    - name: "worker-1"
+      ip: "your-worker-ip"
+      user: "your-username"
+    # Add more worker nodes as needed
 ```
 
-## Documentation
+## Security Notes
 
-- [Setup Guide](docs/setup_guide.md) - Detailed instructions for manual and automated setup
-- [Troubleshooting Guide](docs/troubleshooting.md) - Common issues and solutions
+- SSH keys are stored with 600 permissions
+- Temporary files are automatically cleaned up
+- Backups are created with secure permissions
+- All sensitive operations are logged
 
-## Security Features
+## Troubleshooting
 
-- SSH key authentication only
-- Disabled password authentication
-- Disabled root login
-- Firewall configuration
-- Regular security updates
-- Fail2ban protection
-- Audit logging
-- RBAC enabled
-- Network policies
-- TLS encryption
+1. **SSH Connection Issues**
+   - Verify network connectivity
+   - Check firewall rules
+   - Ensure SSH service is running on target nodes
+   - Verify username and IP addresses
 
-## Support
+2. **Permission Issues**
+   - Check `~/.ssh` directory permissions
+   - Verify key file permissions
+   - Ensure proper user permissions on target nodes
 
-For issues and support:
-1. Check the [troubleshooting guide](docs/troubleshooting.md)
-2. Review system logs
-3. Consult the documentation
-4. Contact the support team
+3. **Monitoring Issues**
+   - Verify required commands are available on target nodes
+   - Check network connectivity
+   - Ensure SSH keys are properly set up
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+[Your License Here]
+
+## Support
+
+For support, please [create an issue](<repository-url>/issues) in the repository. 

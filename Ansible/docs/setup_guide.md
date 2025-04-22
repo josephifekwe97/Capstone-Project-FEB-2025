@@ -147,63 +147,172 @@ The automated setup uses a script that handles all the manual steps above. It pr
    nano scripts/config.yaml
    ```
 
-   Example configuration:
+2. **Determine Correct Settings**
+   
+   a. **Find Your Username**
+   ```bash
+   # On your local machine (control node)
+   whoami
+   # Output example: isreal
+   
+   # On target nodes (if different)
+   ssh <node-ip> "whoami"
+   # Output example: ubuntu
+   ```
+
+   b. **Find Your IP Addresses**
+   ```bash
+   # On your local machine (control node)
+   hostname -I
+   # Output example: 192.168.1.100
+   
+   # On target nodes
+   ssh <node-ip> "hostname -I"
+   # Output example: 192.168.1.101
+   ```
+
+   c. **Find Your SSH Key Path**
+   ```bash
+   # List your SSH keys
+   ls -la ~/.ssh/
+   # Look for files like: id_rsa, id_rsa.pub, or your custom key names
+   ```
+
+3. **Configure the YAML File**
+   
+   Example configuration with explanations:
+   ```yaml
+   # SSH Setup Configuration
+   
+   # AWS or other cloud provider key configuration
+   aws_key:
+     name: your-key.pem        # The name of your key file
+     path: ~/.ssh/your-key.pem # Full path to your key file
+   
+   # SSH Configuration
+   ssh:
+     port: 22                  # Default SSH port
+     key_type: rsa            # Key type (rsa, ed25519, ecdsa)
+     key_bits: 4096           # Key size
+     config_file: ~/.ssh/config # SSH config file path
+   
+   # Node Configuration
+   nodes:
+     control:
+       name: control-node      # Name of your control node
+       ip: 192.168.1.100      # IP address of control node
+       user: isreal           # Your username on control node
+   
+     masters:
+       - name: master-1
+         ip: 192.168.1.101    # IP address of first master
+         user: ubuntu         # Username on master node
+       - name: master-2
+         ip: 192.168.1.102
+         user: ubuntu
+       - name: master-3
+         ip: 192.168.1.103
+         user: ubuntu
+   
+     workers:
+       - name: worker-1
+         ip: 192.168.1.201    # IP address of first worker
+         user: ubuntu         # Username on worker node
+       - name: worker-2
+         ip: 192.168.1.202
+         user: ubuntu
+   
+   # Backup Configuration
+   backup:
+     enabled: true
+     directory: ~/.ssh/backup  # Where to store backups
+     keep_backups: 5          # Number of backups to keep
+   
+   # Logging Configuration
+   logging:
+     enabled: true
+     directory: ~/.ssh/logs   # Where to store logs
+     level: INFO             # Log level (DEBUG, INFO, WARNING, ERROR)
+     max_size: 10M           # Maximum log file size
+     max_files: 5            # Maximum number of log files
+   ```
+
+4. **Verify Configuration**
+   ```bash
+   # Check if the file exists and is readable
+   ls -l scripts/config.yaml
+   
+   # Validate YAML syntax (if yq is installed)
+   yq eval '.' scripts/config.yaml
+   
+   # Check if all required fields are present
+   grep -E "^(aws_key|ssh|nodes|backup|logging):" scripts/config.yaml
+   ```
+
+5. **Common Configuration Scenarios**
+
+   a. **AWS EC2 Setup**
    ```yaml
    aws_key:
-     name: k8s-key.pem
-     path: ~/Downloads/k8s-key.pem
-
-   ssh:
-     port: 22
-     key_type: rsa
-     key_bits: 4096
-
+     name: aws-key.pem
+     path: ~/.ssh/aws-key.pem
+   
    nodes:
      control:
        name: control-node
-       ip: 54.210.167.32
-       user: ubuntu
+       ip: 54.210.167.32    # EC2 public IP
+       user: ubuntu         # AWS Ubuntu AMI default user
+   ```
+
+   b. **Local Machine Setup**
+   ```yaml
+   aws_key:
+     name: id_rsa           # Your local SSH key
+     path: ~/.ssh/id_rsa
+   
+   nodes:
+     control:
+       name: control-node
+       ip: 192.168.1.100   # Local network IP
+       user: isreal        # Your local username
+   ```
+
+   c. **Mixed Environment Setup**
+   ```yaml
+   nodes:
+     control:
+       name: control-node
+       ip: 192.168.1.100
+       user: isreal        # Local machine user
+   
      masters:
        - name: master-1
-         ip: 10.0.1.10
-         user: ubuntu
-       # ... other nodes ...
-   ```
-
-2. **Make the Script Executable**
-   ```bash
-   chmod +x scripts/setup_ssh.sh
-   ```
-
-3. **Run the Script**
-   ```bash
-   ./scripts/setup_ssh.sh
-   ```
-
-4. **Use the Interactive Menu**
-   The script provides a menu with the following options:
-   ```
-   1. Setup all nodes
-   2. Setup specific node
-   3. Check node health
-   4. Backup SSH files
-   5. Restore SSH files
-   6. Show failed nodes
-   7. Exit
-   ```
-
-5. **Monitor Progress**
-   - The script shows color-coded output
-   - Logs are saved in the configured directory
-   - Failed operations are tracked and reported
-
-6. **Verify Setup**
-   ```bash
-   # Check the logs
-   cat ~/.ssh/logs/ssh_setup_*.log
+         ip: 54.210.167.32
+         user: ubuntu      # AWS EC2 user
    
-   # Test SSH to any node
-   ssh ubuntu@10.0.1.10
+     workers:
+       - name: worker-1
+         ip: 10.0.1.20
+         user: centos      # CentOS machine user
+   ```
+
+6. **Troubleshooting Configuration**
+
+   If you encounter issues, check:
+   ```bash
+   # Verify SSH key permissions
+   ls -l ~/.ssh/your-key.pem
+   # Should show: -rw------- (600)
+   
+   # Test SSH connection
+   ssh -i ~/.ssh/your-key.pem <user>@<ip>
+   
+   # Check if user exists on target node
+   ssh <user>@<ip> "id <user>"
+   
+   # Verify network connectivity
+   ping <ip>
+   nc -zv <ip> 22
    ```
 
 #### Choosing Between Manual and Automated Setup
