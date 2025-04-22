@@ -1,233 +1,189 @@
-# SSH Setup and Monitoring Tool - Setup Guide
+# Ansible Multi-Node Setup Guide
 
-This guide provides detailed instructions for setting up and using the SSH Setup and Monitoring Tool.
+This guide provides detailed instructions for setting up Ansible across multiple nodes, including SSH automation and node configuration.
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
 2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Usage](#usage)
-5. [Monitoring](#monitoring)
-6. [Troubleshooting](#troubleshooting)
+3. [SSH Setup](#ssh-setup)
+4. [Ansible Configuration](#ansible-configuration)
+5. [Node Setup](#node-setup)
+6. [Verification](#verification)
+7. [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
 ### System Requirements
 - Linux-based operating system
-- Bash shell
+- Python 3.x
 - SSH client
-- Required commands on target nodes:
-  - `top`
-  - `free`
-  - `df`
-  - `uptime`
-  - `ssh`
-  - `mkdir`
-  - `chmod`
-
-### Software Dependencies
-```bash
-# Install required packages
-# For Ubuntu/Debian:
-sudo apt-get update
-sudo apt-get install -y yq ssh
-
-# For CentOS/RHEL:
-sudo yum install -y yq openssh-clients
-```
+- `yq` (YAML processor)
 
 ### Network Requirements
 - SSH access to all nodes
-- Network connectivity between all nodes
-- Firewall rules allowing SSH traffic (port 22)
+- Network connectivity between nodes
+- Proper firewall configuration
 
 ### Directory Structure
 ```bash
-# Create required directories
-mkdir -p ~/.ssh
-mkdir -p ~/.ssh/backup
-mkdir -p ~/.ssh/logs
-
-# Set proper permissions
-chmod 700 ~/.ssh
-chmod 700 ~/.ssh/backup
-chmod 700 ~/.ssh/logs
+.
+├── ansible.cfg
+├── inventory/
+├── playbooks/
+├── roles/
+├── scripts/
+│   ├── setup_ssh.sh
+│   └── config.yml
+└── docs/
 ```
 
 ## Installation
 
-1. Clone the repository:
+1. **Install Python Dependencies**
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   pip install -r requirements.txt
    ```
 
-2. Make the script executable:
+2. **Install System Packages**
    ```bash
-   chmod +x scripts/setup_ssh.sh
+   # For Ubuntu/Debian
+   sudo apt-get update
+   sudo apt-get install -y ansible ssh yq
+
+   # For CentOS/RHEL
+   sudo yum install -y ansible openssh-clients yq
    ```
 
-3. Configure the `config.yml` file:
+3. **Verify Installation**
    ```bash
-   cp scripts/config.yml.example scripts/config.yml
-   nano scripts/config.yml
+   ansible --version
+   ssh -V
+   yq --version
    ```
 
-## Configuration
+## SSH Setup
 
-### config.yml Structure
-```yaml
-nodes:
-  control:
-    name: "control"
-    ip: "your-control-ip"
-    user: "your-username"
-  masters:
-    - name: "master-1"
-      ip: "your-master-ip"
-      user: "your-username"
-    # Add more master nodes as needed
-  workers:
-    - name: "worker-1"
-      ip: "your-worker-ip"
-      user: "your-username"
-    # Add more worker nodes as needed
-```
+1. **Configure SSH Access**
+   - Update `scripts/config.yml` with node information
+   - Run the SSH setup script:
+     ```bash
+     ./scripts/setup_ssh.sh
+     ```
 
-### Required Fields
-- `name`: Node identifier
-- `ip`: IP address of the node
-- `user`: Username for SSH access
+2. **SSH Setup Options**
+   - Setup all nodes
+   - Setup specific node
+   - Show failed nodes
+   - View logs
+   - Show node status
+   - Monitor nodes
+   - Cleanup temporary files
 
-## Usage
+3. **Verify SSH Access**
+   ```bash
+   # Test SSH to each node
+   ssh user@node-ip
+   ```
 
-### Starting the Tool
-```bash
-./scripts/setup_ssh.sh
-```
+## Ansible Configuration
 
-### Main Menu Options
+1. **Configure ansible.cfg**
+   ```ini
+   [defaults]
+   inventory = inventory/hosts
+   remote_user = your-username
+   private_key_file = ~/.ssh/id_rsa
+   host_key_checking = False
+   ```
 
-1. **Setup all nodes**
-   - Configures SSH access for all nodes
-   - Tests connectivity between nodes
-   - Creates necessary directories and sets permissions
+2. **Set Up Inventory**
+   Create `inventory/hosts`:
+   ```ini
+   [control]
+   control ansible_host=your-control-ip
 
-2. **Setup specific node**
-   - Configure SSH access for a single node
-   - Useful for adding new nodes or fixing issues
+   [masters]
+   master-1 ansible_host=your-master-ip
+   master-2 ansible_host=your-master-ip
 
-3. **Show failed nodes**
-   - Displays nodes that failed setup
-   - Shows error messages and last attempt details
+   [workers]
+   worker-1 ansible_host=your-worker-ip
+   worker-2 ansible_host=your-worker-ip
+   ```
 
-4. **View logs**
-   - Displays detailed operation logs
-   - Helps in troubleshooting issues
+3. **Create Basic Playbook**
+   Create `playbooks/setup.yml`:
+   ```yaml
+   ---
+   - name: Initial Setup
+     hosts: all
+     become: yes
+     tasks:
+       - name: Update package cache
+         apt:
+           update_cache: yes
+         when: ansible_os_family == "Debian"
+   ```
 
-5. **Show node status**
-   - Displays current status of all nodes
-   - Shows online/offline status
+## Node Setup
 
-6. **Monitor nodes**
-   - Real-time monitoring of node metrics
-   - Interactive connectivity matrix
-   - Press 'q' to quit monitoring
+1. **Control Node**
+   ```bash
+   # Install Ansible
+   sudo apt-get install -y ansible
 
-7. **Cleanup temporary files**
-   - Removes temporary SSH key files
-   - Cleans up backup files if needed
+   # Verify installation
+   ansible --version
+   ```
 
-8. **Exit**
-   - Safely exits the tool
-   - Performs cleanup if needed
+2. **Master Nodes**
+   ```bash
+   # Run setup playbook
+   ansible-playbook playbooks/setup.yml -l masters
+   ```
 
-## Monitoring
+3. **Worker Nodes**
+   ```bash
+   # Run setup playbook
+   ansible-playbook playbooks/setup.yml -l workers
+   ```
 
-### Real-time Metrics
-The monitoring feature displays:
-- CPU usage
-- Memory usage
-- Disk usage
-- System uptime
-- System load
+## Verification
 
-### Connectivity Matrix
-- Shows connection status between all nodes
-- Green checkmark (✓) for successful connections
-- Red cross (✗) for failed connections
-- Diagonal marked with "-" (self-connection)
+1. **Test Ansible Connectivity**
+   ```bash
+   ansible all -m ping
+   ```
 
-### Auto-refresh
-- Updates every 5 seconds
-- Press 'q' to quit monitoring
-- Color-coded output for easy status identification
+2. **Run Ad-hoc Commands**
+   ```bash
+   # Check system information
+   ansible all -a "uname -a"
+
+   # Check disk space
+   ansible all -a "df -h"
+   ```
+
+3. **Verify Playbook Execution**
+   ```bash
+   ansible-playbook playbooks/setup.yml --check
+   ```
 
 ## Troubleshooting
 
-### Common Issues
+1. **SSH Issues**
+   - Verify SSH keys
+   - Check network connectivity
+   - Review SSH logs
 
-1. **SSH Connection Failures**
-   ```bash
-   # Test SSH connection manually
-   ssh -v user@ip
-   
-   # Check SSH service status
-   systemctl status ssh
-   
-   # Verify firewall rules
-   sudo ufw status
-   ```
+2. **Ansible Issues**
+   - Check inventory file
+   - Verify Python version
+   - Review Ansible logs
 
-2. **Permission Issues**
-   ```bash
-   # Check directory permissions
-   ls -la ~/.ssh
-   
-   # Check key file permissions
-   ls -l ~/.ssh/id_rsa
-   
-   # Fix permissions if needed
-   chmod 700 ~/.ssh
-   chmod 600 ~/.ssh/id_rsa
-   ```
+3. **Node Issues**
+   - Check node connectivity
+   - Verify system requirements
+   - Review system logs
 
-3. **Monitoring Issues**
-   ```bash
-   # Verify required commands on target nodes
-   ssh user@ip "which top free df uptime"
-   
-   # Check network connectivity
-   ping ip
-   nc -zv ip 22
-   ```
-
-### Log Files
-- Location: `~/.ssh/logs/`
-- Format: `ssh_setup_YYYYMMDD_HHMMSS.log`
-- Contains detailed operation logs
-
-### Backup Files
-- Location: `~/.ssh/backup/`
-- Format: `ssh_key_YYYYMMDD_HHMMSS.pem`
-- Contains backup copies of SSH keys
-
-## Best Practices
-
-1. **Security**
-   - Use strong SSH keys (RSA 4096-bit minimum)
-   - Regularly rotate SSH keys
-   - Keep backup copies of keys
-   - Monitor access logs
-
-2. **Maintenance**
-   - Regularly check node status
-   - Monitor system metrics
-   - Clean up old backup files
-   - Update configuration as needed
-
-3. **Documentation**
-   - Keep configuration files updated
-   - Document any custom changes
-   - Maintain a changelog
-   - Update this guide as needed 
+For detailed troubleshooting steps, refer to `docs/troubleshooting.md`. 

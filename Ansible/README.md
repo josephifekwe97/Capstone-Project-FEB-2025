@@ -1,50 +1,52 @@
-# SSH Setup and Monitoring Tool
+# Ansible Multi-Node Setup Project
 
-A comprehensive tool for setting up SSH access and monitoring across a cluster of nodes. This tool automates the process of configuring SSH keys, testing connectivity, and monitoring node health.
+A comprehensive project for setting up and managing Ansible across multiple nodes. This project includes tools for automating SSH setup, node configuration, and Ansible deployment.
+
+## Project Structure
+
+- **Ansible Configuration**
+  - `ansible.cfg`: Main Ansible configuration file
+  - `inventory/`: Node inventory files
+  - `playbooks/`: Ansible playbooks
+  - `roles/`: Reusable Ansible roles
+
+- **SSH Automation Tool**
+  - `scripts/setup_ssh.sh`: Automated SSH setup script
+  - `scripts/config.yml`: SSH configuration file
 
 ## Features
 
-- **SSH Key Management**
-  - Import existing SSH keys or create new ones
-  - Automatic backup of SSH keys
-  - Secure key file permissions
+- **Ansible Setup**
+  - Multi-node inventory management
+  - Role-based configuration
+  - Playbook automation
+  - Custom Ansible configuration
 
-- **Node Configuration**
-  - Support for control, master, and worker nodes
-  - Automated SSH setup for all nodes
-  - Individual node setup capability
-  - Connectivity testing between nodes
+- **SSH Automation**
+  - Automated SSH key setup
+  - Node-to-node connectivity
+  - Secure key management
+  - Node monitoring
 
-- **Monitoring**
-  - Real-time system metrics (CPU, Memory, Disk, Uptime, Load)
-  - Interactive connectivity matrix
-  - Auto-refreshing status display
-  - Color-coded output for easy status identification
-
-- **Security**
-  - Secure key file handling
-  - Temporary file cleanup
-  - Proper file permissions
-  - Backup management
+- **Node Management**
+  - Control node setup
+  - Master node configuration
+  - Worker node deployment
+  - Health monitoring
 
 ## Requirements
 
 - **System Requirements**
-  - Bash shell
+  - Linux-based operating system
+  - Python 3.x
+  - Ansible
   - SSH client
-  - `yq` (YAML processor) or grep/awk for YAML parsing
-  - `timeout` command
-  - `top`, `free`, `df`, `uptime` commands on target nodes
+  - `yq` (YAML processor)
 
 - **Network Requirements**
   - SSH access to all nodes
-  - Network connectivity between all nodes
-  - Proper firewall rules to allow SSH traffic
-
-- **Permissions**
-  - Write access to `~/.ssh` directory
-  - SSH access to all target nodes
-  - Sudo privileges on target nodes (for some operations)
+  - Network connectivity between nodes
+  - Proper firewall configuration
 
 ## Installation
 
@@ -54,93 +56,92 @@ A comprehensive tool for setting up SSH access and monitoring across a cluster o
    cd <repository-directory>
    ```
 
-2. Install required dependencies:
+2. Install Ansible and dependencies:
    ```bash
-   # For Ubuntu/Debian
+   # Install Python requirements
+   pip install -r requirements.txt
+
+   # Install system dependencies
    sudo apt-get update
-   sudo apt-get install -y yq ssh
-
-   # For CentOS/RHEL
-   sudo yum install -y yq openssh-clients
+   sudo apt-get install -y ansible ssh yq
    ```
 
-3. Configure the `config.yml` file:
-   - Update node information (IPs, usernames)
-   - Ensure all required fields are filled
-
-4. Make the script executable:
+3. Configure SSH access:
    ```bash
-   chmod +x scripts/setup_ssh.sh
-   ```
-
-## Usage
-
-1. Run the script:
-   ```bash
+   # Run the SSH setup script
    ./scripts/setup_ssh.sh
    ```
 
-2. Main Menu Options:
-   - Setup all nodes
-   - Setup specific node
-   - Show failed nodes
-   - View logs
-   - Show node status
-   - Monitor nodes
-   - Cleanup temporary files
-   - Exit
+4. Configure Ansible:
+   - Update `ansible.cfg` as needed
+   - Configure inventory files in `inventory/`
+   - Set up roles in `roles/`
 
-3. Monitoring:
-   - Press 'q' to quit monitoring
-   - Auto-refreshes every 5 seconds
-   - Shows real-time metrics and connectivity status
+## Usage
+
+1. **SSH Setup**
+   ```bash
+   ./scripts/setup_ssh.sh
+   ```
+   - Follow the menu to setup SSH access
+   - Monitor node connectivity
+   - Manage SSH keys
+
+2. **Ansible Deployment**
+   ```bash
+   # Run playbooks
+   ansible-playbook playbooks/setup.yml
+
+   # Test connectivity
+   ansible all -m ping
+   ```
+
+3. **Node Management**
+   ```bash
+   # List all nodes
+   ansible-inventory --list
+
+   # Run ad-hoc commands
+   ansible all -a "uname -a"
+   ```
 
 ## Configuration
 
-The `config.yml` file should contain:
+1. **SSH Configuration**
+   Update `scripts/config.yml`:
+   ```yaml
+   nodes:
+     control:
+       name: "control"
+       ip: "your-control-ip"
+       user: "your-username"
+     masters:
+       - name: "master-1"
+         ip: "your-master-ip"
+         user: "your-username"
+     workers:
+       - name: "worker-1"
+         ip: "your-worker-ip"
+         user: "your-username"
+   ```
 
-```yaml
-nodes:
-  control:
-    name: "control"
-    ip: "your-control-ip"
-    user: "your-username"
-  masters:
-    - name: "master-1"
-      ip: "your-master-ip"
-      user: "your-username"
-    # Add more master nodes as needed
-  workers:
-    - name: "worker-1"
-      ip: "your-worker-ip"
-      user: "your-username"
-    # Add more worker nodes as needed
-```
+2. **Ansible Configuration**
+   - Update `ansible.cfg` for your environment
+   - Configure inventory files
+   - Customize roles as needed
 
-## Security Notes
+## Documentation
 
-- SSH keys are stored with 600 permissions
-- Temporary files are automatically cleaned up
-- Backups are created with secure permissions
-- All sensitive operations are logged
+- `docs/setup-guide.md`: Detailed setup instructions
+- `docs/troubleshooting.md`: Common issues and solutions
+- `docs/setup_guide.md`: Step-by-step deployment guide
 
-## Troubleshooting
+## Security
 
-1. **SSH Connection Issues**
-   - Verify network connectivity
-   - Check firewall rules
-   - Ensure SSH service is running on target nodes
-   - Verify username and IP addresses
-
-2. **Permission Issues**
-   - Check `~/.ssh` directory permissions
-   - Verify key file permissions
-   - Ensure proper user permissions on target nodes
-
-3. **Monitoring Issues**
-   - Verify required commands are available on target nodes
-   - Check network connectivity
-   - Ensure SSH keys are properly set up
+- SSH keys with proper permissions
+- Secure Ansible configuration
+- Role-based access control
+- Audit logging
 
 ## Contributing
 
