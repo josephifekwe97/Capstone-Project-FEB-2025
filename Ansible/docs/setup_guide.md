@@ -75,10 +75,16 @@ This guide provides detailed instructions for setting up and using the Ansible a
 
 ### 2. Set Up SSH Access
 
+You have two options for setting up SSH access:
+1. [Manual Setup](#manual-ssh-setup) - Step-by-step manual configuration
+2. [Automated Setup](#automated-ssh-setup) - Using the provided script
+
+#### Manual SSH Setup
+
 1. **Connect to Control Node**
    ```bash
    # From your local machine
-   ssh -i /path/to/your-key.pem ubuntu@control-node-public-ip
+   ssh -i ~/Downloads/k8s-key.pem ubuntu@54.210.167.32
    ```
 
 2. **Generate SSH Key Pair on Control Node**
@@ -88,49 +94,146 @@ This guide provides detailed instructions for setting up and using the Ansible a
    ```
    
    When prompted:
-   - Enter file name: Press Enter to use the default location (`~/.ssh/id_rsa`)
-   - Enter passphrase: Press Enter for no passphrase (since this is a server)
-   - Confirm passphrase: Press Enter
-
-3. **Copy Public Key to Target Nodes**
-   
-   For each target node (master and worker nodes):
-
-   ```bash
-   # Method 1: Using ssh-copy-id
-   ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@target-node-private-ip
-   
-   # You'll be prompted for the target node's password
-   # After successful copy, test the connection:
-   ssh ubuntu@target-node-private-ip
+   ```
+   Generating public/private rsa key pair.
+   Enter file in which to save the key (/home/ubuntu/.ssh/id_rsa): [Press Enter]
+   Enter passphrase (empty for no passphrase): [Press Enter]
+   Enter same passphrase again: [Press Enter]
    ```
 
-   If `ssh-copy-id` is not available:
-
+3. **Set Up SSH Directory Permissions**
    ```bash
-   # Method 2: Manual copy
-   # 1. Display your public key
-   cat ~/.ssh/id_rsa.pub
-   
-   # 2. SSH into the target node
-   ssh -i /path/to/your-key.pem ubuntu@target-node-public-ip
-   
-   # 3. On the target node, append the public key
+   # On the control node
    mkdir -p ~/.ssh
-   echo "PASTE_YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
    chmod 700 ~/.ssh
-   chmod 600 ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/id_rsa
+   chmod 644 ~/.ssh/id_rsa.pub
    ```
 
-4. **Test SSH Connection**
+4. **Copy AWS Key to Control Node**
    ```bash
-   # Test connection to each node using private IPs
-   ssh ubuntu@master-1-private-ip
-   ssh ubuntu@master-2-private-ip
-   ssh ubuntu@master-3-private-ip
-   ssh ubuntu@worker-1-private-ip
-   ssh ubuntu@worker-2-private-ip
+   # From your local machine
+   scp -i ~/Downloads/k8s-key.pem ~/Downloads/k8s-key.pem ubuntu@54.210.167.32:~/.ssh/
    ```
+
+5. **Copy Public Key to Target Nodes**
+   ```bash
+   # On the control node
+   # For each target node (example for master-1)
+   ssh-copy-id -i ~/.ssh/id_rsa.pub -o "IdentityFile ~/.ssh/k8s-key.pem" ubuntu@10.0.1.10
+   ```
+
+6. **Test SSH Connection**
+   ```bash
+   # On the control node
+   ssh ubuntu@10.0.1.10
+   ```
+
+#### Automated SSH Setup
+
+The automated setup uses a script that handles all the manual steps above. It provides additional features like:
+- Configuration file support
+- Parallel processing
+- Health checks
+- Backup and restore
+- Comprehensive logging
+
+1. **Prepare Configuration File**
+   ```bash
+   # Copy the example configuration
+   cp scripts/config.yaml.example scripts/config.yaml
+   
+   # Edit the configuration file
+   nano scripts/config.yaml
+   ```
+
+   Example configuration:
+   ```yaml
+   aws_key:
+     name: k8s-key.pem
+     path: ~/Downloads/k8s-key.pem
+
+   ssh:
+     port: 22
+     key_type: rsa
+     key_bits: 4096
+
+   nodes:
+     control:
+       name: control-node
+       ip: 54.210.167.32
+       user: ubuntu
+     masters:
+       - name: master-1
+         ip: 10.0.1.10
+         user: ubuntu
+       # ... other nodes ...
+   ```
+
+2. **Make the Script Executable**
+   ```bash
+   chmod +x scripts/setup_ssh.sh
+   ```
+
+3. **Run the Script**
+   ```bash
+   ./scripts/setup_ssh.sh
+   ```
+
+4. **Use the Interactive Menu**
+   The script provides a menu with the following options:
+   ```
+   1. Setup all nodes
+   2. Setup specific node
+   3. Check node health
+   4. Backup SSH files
+   5. Restore SSH files
+   6. Show failed nodes
+   7. Exit
+   ```
+
+5. **Monitor Progress**
+   - The script shows color-coded output
+   - Logs are saved in the configured directory
+   - Failed operations are tracked and reported
+
+6. **Verify Setup**
+   ```bash
+   # Check the logs
+   cat ~/.ssh/logs/ssh_setup_*.log
+   
+   # Test SSH to any node
+   ssh ubuntu@10.0.1.10
+   ```
+
+#### Choosing Between Manual and Automated Setup
+
+Use the manual setup if you:
+- Want to understand each step in detail
+- Need to customize specific steps
+- Are setting up a small number of nodes
+- Prefer more control over the process
+
+Use the automated setup if you:
+- Want to save time
+- Need to set up many nodes
+- Want additional features (backup, health checks)
+- Prefer a more robust solution
+- Need to repeat the setup process
+
+#### Troubleshooting
+
+For manual setup issues:
+1. Check file permissions
+2. Verify SSH service is running
+3. Ensure correct IP addresses
+4. Check AWS key permissions
+
+For automated setup issues:
+1. Check the configuration file
+2. Review the logs
+3. Use the health check feature
+4. Try restoring from backup
 
 ### 3. Prepare Target Nodes
 

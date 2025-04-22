@@ -1,0 +1,53 @@
+# SSH Setup Configuration
+# Save this file as config.yaml and modify the values
+
+aws_key:
+  name: k8s-key.pem
+  path: ~/Downloads/k8s-key.pem
+
+# SSH Configuration
+ssh:
+  port: 22
+  key_type: rsa  # Options: rsa, ed25519, ecdsa
+  key_bits: 4096
+  config_file: ~/.ssh/config
+
+# Node Configuration
+nodes:
+  control:
+    name: control-node
+    ip: 54.210.167.32
+    user: ubuntu
+
+  masters:
+    - name: master-1
+      ip: 10.0.1.10
+      user: ubuntu
+    - name: master-2
+      ip: 10.0.1.11
+      user: ubuntu
+    - name: master-3
+      ip: 10.0.1.12
+      user: ubuntu
+
+  workers:
+    - name: worker-1
+      ip: 10.0.1.20
+      user: ubuntu
+    - name: worker-2
+      ip: 10.0.1.21
+      user: ubuntu
+
+# Backup Configuration
+backup:
+  enabled: true
+  directory: ~/.ssh/backup
+  keep_backups: 5
+
+# Logging Configuration
+logging:
+  enabled: true
+  directory: ~/.ssh/logs
+  level: INFO  # Options: DEBUG, INFO, WARNING, ERROR
+  max_size: 10M
+  max_files: 5 
