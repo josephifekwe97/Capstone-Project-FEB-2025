@@ -1,0 +1,12 @@
+---
+- name: Set up Kubernetes Control Plane
+  hosts: control
+  become: yes
+  roles:
+    - kubernetes_control_plane
+
+- name: Set up Kubernetes Worker Nodes
+  hosts: workers
+  become: yes
+  roles:
+    - kubernetes_worker 

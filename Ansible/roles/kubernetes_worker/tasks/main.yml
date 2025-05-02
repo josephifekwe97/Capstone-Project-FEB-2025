@@ -1,0 +1,39 @@
+---
+- name: Install required packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Add Kubernetes APT repository
+  apt_repository:
+    repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+
+- name: Add GPG key for Kubernetes
+  apt_key:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    state: present
+
+- name: Install Kubernetes components
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+
+- name: Mark Kubernetes packages to hold
+  apt_mark:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: held
+
+- name: Join the Kubernetes cluster
+  command: "{{ hostvars['control'].kubeadm_init.stdout_lines[-1] }}"
+  when: ansible_hostname != "control" 

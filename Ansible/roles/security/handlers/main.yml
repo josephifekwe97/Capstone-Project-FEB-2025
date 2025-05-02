@@ -1,0 +1,21 @@
+---
+- name: restart fail2ban
+  service:
+    name: fail2ban
+    state: restarted
+
+- name: restart auditd
+  service:
+    name: auditd
+    state: restarted
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+- name: reload sysctl
+  command: sysctl -p
+  register: sysctl_result
+  changed_when: sysctl_result.rc == 0
+  failed_when: sysctl_result.rc != 0 

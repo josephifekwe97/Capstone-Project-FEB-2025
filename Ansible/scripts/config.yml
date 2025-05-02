@@ -1,0 +1,25 @@
+nodes:
+  control:
+    name: "control"
+    ip: "127.0.0.1"
+    user: "admin"
+  masters:
+    - name: "master-1"
+      ip: "127.0.0.1"
+      user: "admin"
+    - name: "master-2"
+      ip: "127.0.0.1"
+      user: "admin"
+    - name: "master-3"
+      ip: "127.0.0.1"
+      user: "admin"
+  workers:
+    - name: "worker-1"
+      ip: "127.0.0.1"
+      user: "admin"
+    - name: "worker-2"
+      ip: "127.0.0.1"
+      user: "admin"
+    - name: "worker-3"
+      ip: "127.0.0.1"
+      user: "admin" 

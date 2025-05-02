@@ -1,0 +1,46 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Update yum cache
+  yum:
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3
+    - python3-pip
+    - python3-dev
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - git
+    - curl
+    - wget
+    - unzip
+    - jq
+    - net-tools
+    - dnsutils
+    - apt-transport-https
+    - ca-certificates
+    - gnupg
+    - lsb-release
+
+- name: Install Python packages
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker
+    - kubernetes
+    - pyyaml
+    - requests
+    - urllib3
+    - cryptography 
