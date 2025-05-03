@@ -1,9 +1,0 @@
----
-- name: Include SSH hardening tasks
-  include_tasks: ssh_hardening.yml
-
-- name: Include system hardening tasks
-  include_tasks: system_hardening.yml
-
-- name: Include firewall tasks
-  include_tasks: firewall.yml 
