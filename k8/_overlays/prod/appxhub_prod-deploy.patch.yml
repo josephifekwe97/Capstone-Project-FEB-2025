@@ -1,0 +1,26 @@
+## This patch was created to increase the resource limit of the pods that will be deployed in the prod environment.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  appxhub
+  labels:
+    app:  appxhub
+spec:
+  selector:
+    matchLabels:
+      app: appxhub
+  template:
+    metadata:
+      labels:
+        app:  appxhub
+    spec:
+      containers:
+      - name:  appxhub
+        image:  isrealade/appxhub:2.1
+        resources:
+          requests:
+            cpu: 300m
+            memory: 400Mi
+          limits:
+            cpu: 800m
+            memory: 900Mi

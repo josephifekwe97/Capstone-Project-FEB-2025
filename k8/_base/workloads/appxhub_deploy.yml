@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appxhub
+  labels:
+    app: appxhub
+spec:
+  selector:
+    matchLabels:
+      app: appxhub
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: appxhub
+    spec:
+      containers:
+      - name: appxhub
+        image: isrealade/appxhub:2.1
+        envFrom:
+        - configMapRef:
+            name: appxhub-config
+        - secretRef:
+            name: appxhub-secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort:  3000
+          name: appxhub-port

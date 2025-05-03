@@ -1,0 +1,173 @@
+---
+# tasks file for kubernetes_worker
+- name: Install required packages
+  apt:
+    name:
+      - curl
+      - gnupg2
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: Remove Keyrings Directory (if it exists)
+  ansible.builtin.shell: rm -rf /etc/apt/keyrings
+
+- name: Remove Existing Kubernetes Directory (if it exists)
+  ansible.builtin.shell: sudo rm -rf /etc/apt/sources.list.d/pkgs_k8s_io_core_stable_v1_30_deb.list
+
+- name: Disable swap
+  ansible.builtin.command:
+    cmd: swapoff -a
+
+- name: Ensure swap is disabled on boot
+  ansible.builtin.command:
+    cmd: sudo sed -i -e '/\/swap.img\s\+none\s\+swap\s\+sw\s\+0\s\+0/s/^/#/' /etc/fstab
+
+- name: Add kernel modules for Containerd
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/containerd.conf
+    content: |
+      overlay
+      br_netfilter
+
+- name: Load kernel modules for Containerd
+  ansible.builtin.shell:
+    cmd: modprobe overlay && modprobe br_netfilter
+  become: true
+
+- name: Add kernel parameters for Kubernetes
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+
+- name: Load kernel parameter changes
+  ansible.builtin.command:
+    cmd: sudo sysctl --system
+
+- name: Configuring Containerd (building the configuration file)
+  ansible.builtin.command:
+    cmd: sudo sh -c "containerd config default > /opt/containerd/config.toml"
+
+- name: Configuring Containerd (Setting SystemdCgroup Variable to True)
+  ansible.builtin.command:
+    cmd: sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /opt/containerd/config.toml
+
+- name: Reload systemd configuration
+  ansible.builtin.command:
+    cmd: systemctl daemon-reload
+
+- name: Restart containerd service
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+
+- name: Allow 6443/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 6443/tcp
+
+- name: Allow 2379:2380/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 2379:2380/tcp
+
+- name: Allow 22/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 22/tcp
+
+- name: Allow 8080/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 8080/tcp
+
+- name: Allow 10250/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 10250/tcp
+
+- name: Allow 10251/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 10251/tcp
+
+- name: Allow 10252/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 10252/tcp
+
+- name: Allow 10255/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 10255/tcp
+
+- name: Allow 5473/tcp through firewall
+  ansible.builtin.command:
+    cmd: sudo ufw allow 5473/tcp
+
+- name: Enable the firewall
+  ansible.builtin.ufw:
+    state: enabled
+
+- name: Reload the firewall
+  ansible.builtin.command:
+    cmd: sudo ufw reload
+
+- name: Prepare keyrings directory and update permissions
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Kubernetes GPG key securely
+  ansible.builtin.shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+    state: present
+
+- name: Install kubeadm, kubelet, kubectl
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    update_cache: yes
+
+- name: Hold kubelet, kubeadm, kubectl packages
+  ansible.builtin.command:
+    cmd: sudo apt-mark hold kubelet kubeadm kubectl
+
+- name: Replace /etc/default/kubelet contents
+  ansible.builtin.copy:
+    dest: /etc/default/kubelet
+    content: 'KUBELET_EXTRA_ARGS="--cgroup-driver=cgroupfs"'
+
+- name: Reload systemd configuration
+  ansible.builtin.command:
+    cmd: systemctl daemon-reload
+
+- name: Restart kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    state: restarted
+
+- name: Reboot the system
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible for Kubernetes setup"
+    reboot_timeout: 150
+
+- name: Copy join-command file to worker nodes
+  copy:
+    src: /tmp/join-command
+    dest: /tmp/join-command
+    mode: 0755
+
+- name: Join Worker Nodes
+  ansible.builtin.shell: sh /tmp/join-command
+  become: yes

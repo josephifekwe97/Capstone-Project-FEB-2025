@@ -1,0 +1,22 @@
+nodes:
+  control:
+    name: "control"
+    ip: "16.170.214.9"
+    user: "ubuntu"
+  masters:
+    - name: "master-1"
+      ip: "13.61.23.222"
+      user: "ubuntu"
+    - name: "master-2"
+      ip: "51.21.247.203"
+      user: "ubuntu"
+    - name: "master-3"
+      ip: "13.60.207.204"
+      user: "ubuntu"
+  workers:
+    - name: "worker-1"
+      ip: "13.49.222.148"
+      user: "ubuntu"
+    - name: "worker-2"
+      ip: "13.51.121.79"
+      user: "ubuntu"

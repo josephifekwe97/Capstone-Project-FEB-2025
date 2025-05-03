@@ -1,0 +1,13 @@
+[master_nodes]
+# Replace with your master nodes IPs
+master1 ansible_host=13.61.23.222 ansible_user=ubuntu
+master2 ansible_host=51.21.247.203 ansible_user=ubuntu
+master3 ansible_host=13.60.207.204 ansible_user=ubuntu
+
+[worker_nodes]
+# Replace with your worker nodes IPs
+worker1 ansible_host=13.49.222.148 ansible_user=ubuntu
+worker2 ansible_host=13.51.121.79 ansible_user=ubuntu
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
