@@ -20,6 +20,9 @@ This repository contains Kubernetes configurations for deploying applications in
 
 2. **Deploy**
    ```bash
+   # Namespace
+   kubectl apply -f _base/appxhub-namespace.yml
+
    # Development
    kubectl apply -k _overlays/dev/
 
@@ -61,10 +64,11 @@ k8s/
 
 ## Security
 
-- Environment files (.env*) are not committed to the repository
-- Each environment runs in its own namespace
-- Production environment has stricter resource limits
-- Secrets are managed separately from the repository
+- Environment files (.env*) are committed to the repository to allow ease of use for practice deployments. However, do not do this in a real-world scenario.
+- Each environment runs in its own namespace.
+- Production environment has stricter resource limits.
+- Secrets are managed separately from the repository.
+
 
 ## License
 

@@ -50,17 +50,20 @@ images:
   newTag: latest
 ```
 
-### 3. Deploy to Development
+### 3. Apply the namespace file 
+```bash
+kubectl apply -f _base/appxhub-namespace.yml
+```
+
+### 4. Deploy to Development
 ```bash
 kubectl apply -k _overlays/dev/
 ```
 
-### 4. Deploy to Production
+### 5. Deploy to Production
 ```bash
 kubectl apply -k _overlays/prod/
 ```
-
-## Environment Configuration
 
 ### Development Environment
 - Namespace: appxhub-dev
@@ -75,20 +78,6 @@ kubectl apply -k _overlays/prod/
 - Resource Limits:
   - CPU: 500m
   - Memory: 512Mi
-
-## CI/CD Integration
-
-### Environment Variables
-Create the following secrets/configmaps in each namespace:
-```bash
-# For development
-kubectl create secret generic appxhub-dev-secret -n dev --from-file=.env.dev
-kubectl create configmap appxhub-dev-config -n dev --from-file=.env.dev.config
-
-# For production
-kubectl create secret generic appxhub-prod-secret -n prod --from-file=.env.prod
-kubectl create configmap appxhub-prod-config -n prod --from-file=.env.prod.config
-```
 
 ### Pipeline Steps
 1. Build and test application
@@ -151,10 +140,10 @@ kubectl describe hpa appxhub -n dev
 ```
 
 ## Security Notes
-- Environment files (.env*) are not committed to the repository
-- Each environment runs in its own namespace
-- Production environment has stricter resource limits
-- Secrets are managed separately from the repository
+- Environment files (.env*) are committed to the repository to allow ease of use for practice deployments. However, do not do this in a real-world scenario.
+- Each environment runs in its own namespace.
+- Production environment has stricter resource limits.
+- Secrets are managed separately from the repository.
 
 ## Maintenance
 
@@ -168,6 +157,6 @@ kubectl describe hpa appxhub -n dev
 
 ### Rolling Back
 ```bash
-kubectl rollout undo deployment/appxhub -n appxhub-dev
-kubectl rollout undo deployment/appxhub -n appxhub-prod
+kubectl rollout undo deployment/appxhub -n dev
+kubectl rollout undo deployment/appxhub -n prod
 ```
