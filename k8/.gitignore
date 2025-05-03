@@ -1,12 +1,3 @@
-# Environment files
-.env*
-.env.*
-*.env
-.env.dev
-.env.dev.config
-.env.prod
-.env.prod.config
-
 # Kubernetes temporary files
 *.tmp
 *.bak
