@@ -8,6 +8,45 @@ This project automates the setup of a Kubernetes cluster using Ansible. The setu
 - Basic knowledge of Linux commands
 - SSH key pair
 - Ansible (will be installed during setup)
+- Before running the `setup_ssh.sh` script, you need to install `yq`, a command-line YAML processor. Follow the instructions below based on your operating system:
+
+### For Windows:
+1. **Using Chocolatey** (if you have it installed):
+   ```powershell
+   choco install yq
+   ```
+
+2. **Using Scoop** (if you have it installed):
+   ```powershell
+   scoop install yq
+   ```
+
+3. **Manual Installation**:
+   - Download the latest release from the [yq GitHub releases page](https://github.com/mikefarah/yq/releases).
+   - Choose the appropriate binary for Windows (e.g., `yq_windows_amd64.exe`).
+   - Rename it to `yq.exe` and place it in a directory that is included in your system's PATH.
+
+### For Linux:
+You can install `yq` using the following command:
+```bash
+sudo snap install yq
+```
+Or, you can download the binary directly:
+```bash
+wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+chmod +x /usr/bin/yq
+```
+
+### For macOS:
+You can install `yq` using Homebrew:
+```bash
+brew install yq
+```
+
+After installation, verify that `yq` is installed correctly by running:
+```bash
+yq --version
+```
 
 ## Instance Setup
 
