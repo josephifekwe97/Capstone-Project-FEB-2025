@@ -1,0 +1,16 @@
+aws_region      = "us-east-1"
+aws_profile     = "default"
+key_name        = "eks-key"
+vpc_cidr        = "10.0.0.0/16"
+azs             = ["us-east-1a", "us-east-1b"]
+private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
+cluster_name    = "capstone-cluster"
+node_desired    = 3
+node_min        = 2
+node_max        = 5
+instance_type   = "t3.medium"
+ami_id          = "ami-084568db4383264d4"
+iam_role_name   = "ansible-ec2-role"
+policy_arn      = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+github_repo_url = "https://github.com/josephifekwe97/Capstone-Project-FEB-2025.git"
