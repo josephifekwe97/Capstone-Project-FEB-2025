@@ -1,0 +1,63 @@
+name: Automated testing and docker push
+
+on:
+    push:
+        paths:
+            - 'app/**'
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    Testing:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20.x
+            - name: Cache node modules
+              uses: actions/cache@v4
+              with:
+                path: ./app/node_modules
+                key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
+                restore-keys: |
+                    ${{ runner.os }}-node-
+
+            - name: Install Dependencies
+              working-directory: ./app/
+              run: npm install
+
+            - name: Run Unit Test
+              working-directory: ./app/
+              run: npm test
+              env:
+                REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+                REACT_APP_ENVIRONMENT: ${{ vars.REACT_APP_ENVIRONMENT }}
+                REACT_APP_USERNAME: ${{ vars.REACT_APP_USERNAME }}
+                REACT_APP_PASSWORD: ${{ secrets.REACT_APP_PASSWORD }}
+
+    Docker-build-and-push:
+        needs: Testing
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                username: ${{ vars.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+            
+            - name: Build and push
+              uses: docker/build-push-action@v6
+              with:
+                context: ./app/
+                push: true
+                tags: isrealade/appxhub:latest
