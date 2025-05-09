@@ -60,4 +60,4 @@ jobs:
               with:
                 context: ./app/
                 push: true
-                tags: isrealade/appxhub:latest
+                tags: ${{ vars.DOCKERHUB_USERNAME }}/appxhub:latest
