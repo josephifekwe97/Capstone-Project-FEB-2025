@@ -1,0 +1,8 @@
+server:
+  global:
+    scrape_interval: "15s"
+
+prometheus:
+  service:
+    type: LoadBalancer
+  podMonitorSelectorNilUsesHelmValues: false
